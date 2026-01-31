@@ -1,0 +1,137 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma-japanese"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("JAPANESE_DATABASE_URL")
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  telegramId    BigInt   @unique
+  chatId        BigInt
+  username      String?
+  firstName     String?
+  lastName      String?
+  dailyTime     String   @default("08:00")
+  timezone      String   @default("Asia/Seoul")
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  learningRecords LearningRecord[]
+  quizAttempts    QuizAttempt[]
+  dailySessions   DailySession[]
+}
+
+model Word {
+  id              Int      @id @default(autoincrement())
+  japanese        String
+  reading         String?
+  koreanReading   String?
+  korean          String
+  partOfSpeech    String?
+  example         String?
+  exampleReading  String?
+  exampleKorean   String?
+  difficulty      Int      @default(1)
+  category        String?
+  jlptLevel       String?
+  createdAt       DateTime @default(now())
+
+  learningRecords LearningRecord[]
+  quizAttempts    QuizAttempt[]
+}
+
+model Expression {
+  id              Int      @id @default(autoincrement())
+  expression      String
+  reading         String?
+  koreanReading   String?
+  meaning         String
+  example         String?
+  exampleReading  String?
+  exampleKorean   String?
+  situation       String?
+  difficulty      Int      @default(1)
+  category        String?
+  createdAt       DateTime @default(now())
+
+  learningRecords LearningRecord[]
+}
+
+model GrammarPoint {
+  id             Int      @id @default(autoincrement())
+  title          String
+  titleReading   String?
+  explanation    String
+  correct        String
+  correctReading String?
+  incorrect      String?
+  tip            String?
+  difficulty     Int      @default(1)
+  category       String?
+  jlptLevel      String?
+  createdAt      DateTime @default(now())
+
+  learningRecords LearningRecord[]
+}
+
+model LearningRecord {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  contentType     String
+  repetitionCount Int      @default(0)
+  easeFactor      Float    @default(2.5)
+  interval        Int      @default(1)
+  nextReviewAt    DateTime
+  lastScore       Int?
+  learnedAt       DateTime @default(now())
+  lastReviewedAt  DateTime @default(now())
+
+  user         User          @relation(fields: [userId], references: [id])
+  wordId       Int?
+  word         Word?         @relation(fields: [wordId], references: [id])
+  expressionId Int?
+  expression   Expression?   @relation(fields: [expressionId], references: [id])
+  grammarId    Int?
+  grammar      GrammarPoint? @relation(fields: [grammarId], references: [id])
+
+  @@unique([userId, contentType, wordId])
+  @@unique([userId, contentType, expressionId])
+  @@unique([userId, contentType, grammarId])
+}
+
+model QuizAttempt {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  wordId        Int?
+  quizType      String
+  question      String
+  userAnswer    String?
+  correctAnswer String
+  isCorrect     Boolean
+  responseTime  Int?
+  attemptedAt   DateTime @default(now())
+
+  user User  @relation(fields: [userId], references: [id])
+  word Word? @relation(fields: [wordId], references: [id])
+}
+
+model DailySession {
+  id            Int      @id @default(autoincrement())
+  date          String
+  userId        Int
+  wordsLearned  Int      @default(0)
+  wordsReviewed Int      @default(0)
+  quizScore     Int?
+  totalTime     Int?
+  completed     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([date, userId])
+}
