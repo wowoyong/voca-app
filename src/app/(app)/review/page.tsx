@@ -11,15 +11,12 @@ export default function ReviewPage() {
   const [cards, setCards] = useState<CardData[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState<number | null>(null);
 
   useEffect(() => {
     setLoading(true);
-    // Fetch review words (using today endpoint - reviewWords)
     fetch(`/api/today?lang=${language}`)
       .then((r) => r.json())
       .then((d) => {
-        setUserId(d.userId);
         const reviewWords = d.reviewWords || [];
         const reviewExprs = d.reviewExpressions || [];
 
@@ -29,8 +26,11 @@ export default function ReviewPage() {
           front: language === "en" ? w.english : w.japanese,
           back: w.korean,
           sub: language === "en" ? w.pronunciation : w.reading,
+          koreanReading: language === "jp" ? w.koreanReading ?? undefined : undefined,
           example: w.example,
           exampleTranslation: w.exampleKorean,
+          exampleReading: language === "jp" ? w.exampleReading ?? undefined : undefined,
+          exampleTtsText: w.example ?? undefined,
           ttsText: language === "en" ? w.english : w.japanese,
           ttsLang: language,
         }));
@@ -41,8 +41,11 @@ export default function ReviewPage() {
           front: e.expression,
           back: e.meaning,
           sub: language === "jp" ? e.reading : undefined,
+          koreanReading: language === "jp" ? e.koreanReading ?? undefined : undefined,
           example: e.example,
           exampleTranslation: e.exampleKorean,
+          exampleReading: language === "jp" ? e.exampleReading ?? undefined : undefined,
+          exampleTtsText: e.example ?? undefined,
           ttsText: e.expression,
           ttsLang: language,
         }));
@@ -55,14 +58,13 @@ export default function ReviewPage() {
   }, [language]);
 
   const handleSwipe = async (quality: number) => {
-    if (!userId || !cards[currentIdx]) return;
+    if (!cards[currentIdx]) return;
 
     await fetch("/api/learning-record", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         lang: language,
-        userId,
         contentType: cards[currentIdx].type,
         contentId: cards[currentIdx].id,
         quality,
@@ -75,7 +77,7 @@ export default function ReviewPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
-        <div className="text-gray-400 text-lg">로딩 중...</div>
+        <div className="text-muted-foreground text-lg">로딩 중...</div>
       </div>
     );
   }
@@ -83,9 +85,11 @@ export default function ReviewPage() {
   if (cards.length === 0) {
     return (
       <div className="max-w-lg mx-auto px-4 pt-6 text-center">
-        <p className="text-5xl mt-16 mb-4">🎯</p>
-        <p className="text-gray-500 text-lg">복습할 단어가 없습니다</p>
-        <p className="text-gray-400 text-sm mt-1">모든 복습을 완료했어요!</p>
+        <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mt-16 mb-4">
+          <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+        </div>
+        <p className="text-muted-foreground text-lg">복습할 단어가 없습니다</p>
+        <p className="text-muted-foreground/60 text-sm mt-1">모든 복습을 완료했어요!</p>
       </div>
     );
   }
@@ -95,7 +99,7 @@ export default function ReviewPage() {
   return (
     <div className="max-w-lg mx-auto px-4 pt-6">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-bold text-gray-900">복습</h1>
+        <h1 className="text-xl font-bold text-foreground">복습</h1>
         <LanguageToggle />
       </div>
 
@@ -103,9 +107,11 @@ export default function ReviewPage() {
 
       {completed ? (
         <div className="text-center py-20">
-          <p className="text-5xl mb-4">✅</p>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">복습 완료!</h2>
-          <p className="text-gray-500">{cards.length}개의 항목을 복습했습니다</p>
+          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+          </div>
+          <h2 className="text-2xl font-bold text-foreground mb-2">복습 완료!</h2>
+          <p className="text-muted-foreground">{cards.length}개의 항목을 복습했습니다</p>
         </div>
       ) : (
         <>
@@ -116,7 +122,7 @@ export default function ReviewPage() {
             onSwipeLeft={() => handleSwipe(0)}
             showSwipeHints
           />
-          <div className="flex justify-center gap-6 mt-6 text-sm text-gray-400">
+          <div className="flex justify-center gap-6 mt-6 text-sm text-muted-foreground">
             <span>← 모르겠어요</span>
             <span>알아요! →</span>
           </div>

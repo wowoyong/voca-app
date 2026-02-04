@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prismaEnglish } from "@/lib/db-english";
 import { prismaJapanese } from "@/lib/db-japanese";
+import { getAuthUser } from "@/lib/auth";
+import { getOrCreateLanguageUser } from "@/lib/user";
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -11,20 +13,83 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+// Seeded random for today's words
+function seededRandom(seed: number) {
+  let x = Math.sin(seed++) * 10000;
+  return x - Math.floor(x);
+}
+
+function seededShuffle<T>(arr: T[], seed: number): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(seededRandom(seed + i) * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function getTodaySeed(): number {
+  const today = new Date();
+  const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  
+  let hash = 0;
+  for (let i = 0; i < dateString.length; i++) {
+    const char = dateString.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return Math.abs(hash);
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function generateQuiz(prisma: any, lang: string, count: number) {
-  const allWords = await prisma.word.findMany();
-  if (allWords.length < 4) {
+async function getTodayWords(prisma: any, userId: number) {
+  const todaySeed = getTodaySeed();
+
+  const learnedWordRecords = await prisma.learningRecord.findMany({
+    where: { userId, contentType: "word", wordId: { not: null } },
+    select: { wordId: true },
+  });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const learnedWordIds = learnedWordRecords.map((r: any) => r.wordId!);
+
+  const allNewWords = await prisma.word.findMany({
+    where: learnedWordIds.length > 0 ? { id: { notIn: learnedWordIds } } : {},
+    take: 100,
+    orderBy: { difficulty: "asc" },
+  });
+  
+  return seededShuffle(allNewWords, todaySeed).slice(0, 15);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getReviewWords(prisma: any, userId: number) {
+  const learnedWordRecords = await prisma.learningRecord.findMany({
+    where: { userId, contentType: "word", wordId: { not: null } },
+    include: { word: true },
+  });
+  
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const learnedWords = learnedWordRecords.filter((r: any) => r.word).map((r: any) => r.word!);
+  
+  if (learnedWords.length === 0) {
+    return [];
+  }
+  
+  return shuffle(learnedWords).slice(0, 15);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function generateQuiz(prisma: any, lang: string, words: any[]) {
+  if (words.length < 4) {
     return null;
   }
 
-  const shuffled = shuffle(allWords);
-  const questionWords = shuffled.slice(0, Math.min(count, shuffled.length));
+  const allWordsData = await prisma.word.findMany();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const questions = questionWords.map((word: any) => {
+  const questions = words.map((word: any) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const wrongOptions = shuffle(allWords.filter((w: any) => w.id !== word.id)).slice(0, 3);
+    const wrongOptions = shuffle(allWordsData.filter((w: any) => w.id !== word.id)).slice(0, 3);
     const options = shuffle([
       { id: word.id, text: word.korean },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -47,11 +112,38 @@ async function generateQuiz(prisma: any, lang: string, count: number) {
 
 export async function GET(req: NextRequest) {
   const lang = req.nextUrl.searchParams.get("lang") || "en";
-  const count = Math.min(parseInt(req.nextUrl.searchParams.get("count") || "10"), 20);
+  const mode = req.nextUrl.searchParams.get("mode") || "all";
 
   try {
-    const prisma = lang === "jp" ? prismaJapanese : prismaEnglish;
-    const questions = await generateQuiz(prisma, lang, count);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const prisma: any = lang === "jp" ? prismaJapanese : prismaEnglish;
+    
+    let words;
+    
+    if (mode === "today" || mode === "review") {
+      const authUser = await getAuthUser();
+      if (!authUser) {
+        return NextResponse.json({ error: "인증이 필요합니다" }, { status: 401 });
+      }
+      
+      const user = await getOrCreateLanguageUser(prisma, authUser.webUserId, authUser.username);
+      
+      if (mode === "today") {
+        words = await getTodayWords(prisma, user.id);
+      } else {
+        words = await getReviewWords(prisma, user.id);
+        if (words.length === 0) {
+          return NextResponse.json({ error: "복습할 단어가 없습니다" }, { status: 400 });
+        }
+      }
+    } else {
+      // 기본 동작: 모든 단어 중 랜덤
+      const count = Math.min(parseInt(req.nextUrl.searchParams.get("count") || "10"), 20);
+      const allWordsData = await prisma.word.findMany();
+      words = shuffle(allWordsData).slice(0, count);
+    }
+
+    const questions = await generateQuiz(prisma, lang, words);
 
     if (!questions) {
       return NextResponse.json({ error: "퀴즈를 위한 단어가 부족합니다" }, { status: 400 });

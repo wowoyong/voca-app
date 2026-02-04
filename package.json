@@ -7,28 +7,30 @@
     "build": "next build",
     "start": "next start -p 3005",
     "lint": "next lint",
-    "prisma:generate": "prisma generate --schema=prisma/schema-english.prisma && prisma generate --schema=prisma/schema-japanese.prisma"
+    "prisma:generate": "prisma generate --schema=prisma/schema-english.prisma && prisma generate --schema=prisma/schema-japanese.prisma && prisma generate --schema=prisma/schema-auth.prisma"
   },
   "dependencies": {
-    "next": "^15.3.3",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "prisma": "^6.9.0",
     "@prisma/client": "^6.9.0",
+    "bcryptjs": "^3.0.3",
+    "google-tts-api": "^2.0.2",
     "jose": "^6.0.11",
-    "google-tts-api": "^2.0.2"
+    "next": "^15.3.3",
+    "prisma": "^6.9.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {
-    "typescript": "^5.8.3",
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4.1.8",
+    "@types/bcryptjs": "^3.0.0",
     "@types/node": "^22.15.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
-    "tailwindcss": "^4.1.8",
-    "@tailwindcss/postcss": "^4.1.8",
-    "postcss": "^8.5.0",
     "eslint": "^9.27.0",
     "eslint-config-next": "^15.3.3",
-    "@eslint/eslintrc": "^3"
+    "postcss": "^8.5.0",
+    "tailwindcss": "^4.1.8",
+    "typescript": "^5.8.3"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

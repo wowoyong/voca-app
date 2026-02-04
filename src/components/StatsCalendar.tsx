@@ -37,7 +37,7 @@ export default function StatsCalendar({ data, months = 3 }: StatsCalendarProps) 
   if (currentWeek.length > 0) weeks.push(currentWeek);
 
   const getColor = (count: number) => {
-    if (count === 0) return "bg-gray-100";
+    if (count === 0) return "bg-secondary";
     const ratio = count / maxCount;
     if (ratio <= 0.25) return "bg-green-200";
     if (ratio <= 0.5) return "bg-green-300";

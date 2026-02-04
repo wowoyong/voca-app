@@ -46,7 +46,7 @@ export default function StatsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
-        <div className="text-gray-400 text-lg">로딩 중...</div>
+        <div className="text-muted-foreground text-lg">로딩 중...</div>
       </div>
     );
   }
@@ -54,34 +54,34 @@ export default function StatsPage() {
   return (
     <div className="max-w-lg mx-auto px-4 pt-6">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-gray-900">학습 통계</h1>
+        <h1 className="text-xl font-bold text-foreground">학습 통계</h1>
         <LanguageToggle />
       </div>
 
       {/* Calendar */}
-      <div className="bg-white rounded-2xl shadow p-4 mb-6">
-        <h2 className="text-sm font-semibold text-gray-600 mb-3">학습 달력</h2>
+      <div className="bg-card rounded-2xl border p-4 mb-6">
+        <h2 className="text-sm font-semibold text-foreground mb-3">학습 달력</h2>
         <StatsCalendar data={stats?.calendar || []} />
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-white rounded-2xl shadow p-4">
-          <p className="text-xs text-gray-500 mb-1">학습 단어</p>
-          <p className="text-3xl font-bold text-indigo-600">{stats?.totalLearned ?? 0}</p>
+        <div className="bg-card rounded-2xl border p-4">
+          <p className="text-xs text-muted-foreground mb-1">학습 단어</p>
+          <p className="text-3xl font-bold text-foreground">{stats?.totalLearned ?? 0}</p>
         </div>
-        <div className="bg-white rounded-2xl shadow p-4">
-          <p className="text-xs text-gray-500 mb-1">퀴즈 정확도</p>
+        <div className="bg-card rounded-2xl border p-4">
+          <p className="text-xs text-muted-foreground mb-1">퀴즈 정확도</p>
           <p className="text-3xl font-bold text-green-600">
             {stats?.totalQuizzes ? `${Math.round(stats.quizAccuracy)}%` : "-"}
           </p>
         </div>
-        <div className="bg-white rounded-2xl shadow p-4">
-          <p className="text-xs text-gray-500 mb-1">연속 학습</p>
+        <div className="bg-card rounded-2xl border p-4">
+          <p className="text-xs text-muted-foreground mb-1">연속 학습</p>
           <p className="text-3xl font-bold text-orange-500">{stats?.streak ?? 0}일</p>
         </div>
-        <div className="bg-white rounded-2xl shadow p-4">
-          <p className="text-xs text-gray-500 mb-1">복습 예정</p>
+        <div className="bg-card rounded-2xl border p-4">
+          <p className="text-xs text-muted-foreground mb-1">복습 예정</p>
           <p className="text-3xl font-bold text-red-500">{stats?.reviewDue ?? 0}</p>
         </div>
       </div>

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prismaEnglish } from "@/lib/db-english";
 import { prismaJapanese } from "@/lib/db-japanese";
+import { getAuthUser } from "@/lib/auth";
+import { getOrCreateLanguageUser } from "@/lib/user";
 
 // SM-2 algorithm
 function sm2(quality: number, repetitionCount: number, easeFactor: number, interval: number) {
@@ -87,21 +89,26 @@ async function updateRecord(
         date: today,
         userId,
         wordsLearned: existing ? 0 : 1,
-        wordsReviewed: existing ? 1 : 0,
-      },
+        wordsReviewed: existing ? 1 : 0 },
     });
   }
 }
 
 export async function POST(req: NextRequest) {
-  const { lang, userId, contentType, contentId, quality } = await req.json();
+  const { lang, contentType, contentId, quality } = await req.json();
 
   try {
-    if (lang === "jp") {
-      await updateRecord(prismaJapanese, userId, contentType, contentId, quality);
-    } else {
-      await updateRecord(prismaEnglish, userId, contentType, contentId, quality);
+    // Get authenticated user
+    const authUser = await getAuthUser();
+    if (!authUser) {
+      return NextResponse.json({ error: "인증이 필요합니다" }, { status: 401 });
     }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const prisma: any = lang === "jp" ? prismaJapanese : prismaEnglish;
+    const user = await getOrCreateLanguageUser(prisma, authUser.webUserId, authUser.username);
+
+    await updateRecord(prisma, user.id, contentType, contentId, quality);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Learning record error:", error);
@@ -112,27 +119,19 @@ export async function POST(req: NextRequest) {
 async function getStats(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   prisma: any,
+  userId: number,
 ) {
-  const WEB_USER_TELEGRAM_ID = BigInt(9999999999);
-  const user = await prisma.user.findUnique({
-    where: { telegramId: WEB_USER_TELEGRAM_ID },
-  });
-
-  if (!user) {
-    return { reviewDue: 0, streak: 0, totalLearned: 0 };
-  }
-
   const now = new Date();
   const reviewDue = await prisma.learningRecord.count({
-    where: { userId: user.id, nextReviewAt: { lte: now } },
+    where: { userId, nextReviewAt: { lte: now } },
   });
 
   const totalLearned = await prisma.learningRecord.count({
-    where: { userId: user.id },
+    where: { userId },
   });
 
   const sessions = await prisma.dailySession.findMany({
-    where: { userId: user.id },
+    where: { userId },
     orderBy: { date: "desc" },
     take: 60,
   });
@@ -149,14 +148,24 @@ async function getStats(
     }
   }
 
-  return { userId: user.id, reviewDue, totalLearned, streak };
+  return { userId, reviewDue, totalLearned, streak };
 }
 
 export async function GET(req: NextRequest) {
   const lang = req.nextUrl.searchParams.get("lang") || "en";
 
   try {
-    const result = lang === "jp" ? await getStats(prismaJapanese) : await getStats(prismaEnglish);
+    // Get authenticated user
+    const authUser = await getAuthUser();
+    if (!authUser) {
+      return NextResponse.json({ error: "인증이 필요합니다" }, { status: 401 });
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const prisma: any = lang === "jp" ? prismaJapanese : prismaEnglish;
+    const user = await getOrCreateLanguageUser(prisma, authUser.webUserId, authUser.username);
+
+    const result = await getStats(prisma, user.id);
     return NextResponse.json(result);
   } catch (error) {
     console.error("Learning record GET error:", error);

@@ -13,10 +13,46 @@ interface HomeStats {
 }
 
 const quickActions = [
-  { href: "/today", label: "오늘의 학습", icon: "📖", color: "from-blue-500 to-indigo-600" },
-  { href: "/flashcard", label: "플래시카드", icon: "🃏", color: "from-purple-500 to-pink-600" },
-  { href: "/quiz", label: "퀴즈", icon: "❓", color: "from-amber-500 to-orange-600" },
-  { href: "/review", label: "복습", icon: "🔄", color: "from-green-500 to-emerald-600" },
+  {
+    href: "/today",
+    label: "오늘의 학습",
+    description: "새 단어와 표현 학습",
+    icon: (
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+      </svg>
+    ),
+  },
+  {
+    href: "/flashcard",
+    label: "플래시카드",
+    description: "빈칸 채우기 문제",
+    icon: (
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+      </svg>
+    ),
+  },
+  {
+    href: "/quiz",
+    label: "퀴즈",
+    description: "실력 테스트",
+    icon: (
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+      </svg>
+    ),
+  },
+  {
+    href: "/review",
+    label: "복습",
+    description: "복습 예정 단어",
+    icon: (
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" />
+      </svg>
+    ),
+  },
 ];
 
 export default function HomePage() {
@@ -32,48 +68,57 @@ export default function HomePage() {
 
   return (
     <div className="max-w-lg mx-auto px-4 pt-6">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Voca</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-foreground">Voca</h1>
+          <p className="text-sm text-muted-foreground">
             {language === "en" ? "영어" : "일본어"} 학습
           </p>
         </div>
-        <LanguageToggle />
+        <div className="flex items-center gap-3">
+          <Link
+            href="/settings"
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </Link>
+          <LanguageToggle />
+        </div>
       </div>
 
-      {/* Streak & Stats Card */}
-      <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-5 text-white mb-6 shadow-lg">
+      <div className="bg-card border rounded-2xl p-5 mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm opacity-80">연속 학습</p>
-            <p className="text-4xl font-bold">{stats?.streak ?? 0}일</p>
+            <p className="text-sm text-muted-foreground">연속 학습</p>
+            <p className="text-4xl font-bold text-foreground">{stats?.streak ?? 0}<span className="text-lg font-normal text-muted-foreground ml-1">일</span></p>
           </div>
           <div className="text-right space-y-1">
-            <p className="text-sm opacity-80">
-              학습 단어 <span className="font-semibold">{stats?.totalLearned ?? 0}</span>
+            <p className="text-sm text-muted-foreground">
+              학습 단어 <span className="font-semibold text-foreground">{stats?.totalLearned ?? 0}</span>
             </p>
-            <p className="text-sm opacity-80">
-              복습 대기 <span className="font-semibold text-yellow-300">{stats?.reviewDue ?? 0}</span>
+            <p className="text-sm text-muted-foreground">
+              복습 대기 <span className="font-semibold text-orange-500">{stats?.reviewDue ?? 0}</span>
             </p>
           </div>
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <h2 className="text-lg font-semibold text-gray-800 mb-3">빠른 시작</h2>
+      <h2 className="text-lg font-semibold text-foreground mb-3">빠른 시작</h2>
       <div className="grid grid-cols-2 gap-3 mb-6">
         {quickActions.map((action) => (
           <Link
             key={action.href}
             href={action.href}
-            className={`bg-gradient-to-br ${action.color} rounded-2xl p-5 text-white shadow-md active:scale-[0.97] transition-transform`}
+            className="bg-card border rounded-2xl p-4 active:scale-[0.97] transition-transform hover:bg-accent"
           >
-            <span className="text-3xl block mb-2">{action.icon}</span>
-            <span className="font-semibold text-sm">{action.label}</span>
+            <div className="text-foreground mb-3">{action.icon}</div>
+            <span className="font-semibold text-sm text-foreground block">{action.label}</span>
+            <span className="text-xs text-muted-foreground">{action.description}</span>
             {action.href === "/review" && stats?.reviewDue ? (
-              <span className="ml-1 bg-white/30 text-xs px-1.5 py-0.5 rounded-full">
+              <span className="ml-1 bg-orange-100 text-orange-700 text-xs px-1.5 py-0.5 rounded-full">
                 {stats.reviewDue}
               </span>
             ) : null}

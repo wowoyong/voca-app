@@ -42,21 +42,21 @@ export default function QuizCard({
 
   return (
     <div className="w-full max-w-sm mx-auto">
-      <div className="bg-white rounded-2xl shadow-lg p-6 mb-4">
+      <div className="bg-card rounded-2xl border p-6 mb-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold text-gray-900">{question}</h2>
+          <h2 className="text-2xl font-bold text-foreground">{question}</h2>
           {ttsText && <TTSButton text={ttsText} lang={ttsLang} />}
         </div>
       </div>
 
       <div className="space-y-3">
         {options.map((option) => {
-          let bgClass = "bg-white hover:bg-gray-50 border-gray-200";
+          let bgClass = "bg-card hover:bg-accent border-border";
           if (answered) {
             if (option.id === correctId) {
-              bgClass = "bg-green-100 border-green-500 quiz-correct";
+              bgClass = "bg-green-50 border-green-500 quiz-correct";
             } else if (option.id === selected) {
-              bgClass = "bg-red-100 border-red-500 quiz-incorrect";
+              bgClass = "bg-red-50 border-red-500 quiz-incorrect";
             }
           }
 
@@ -69,7 +69,7 @@ export default function QuizCard({
                 answered ? "cursor-default" : "active:scale-[0.98]"
               }`}
             >
-              <span className="text-base text-gray-800">{option.text}</span>
+              <span className="text-base text-foreground">{option.text}</span>
             </button>
           );
         })}

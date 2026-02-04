@@ -2,3 +2,12 @@ node_modules/
 .next/
 .env
 src/generated/
+
+# Database files
+prisma/data/*.db
+prisma/data/*.db-*
+*.db
+*.db-journal
+
+# Backup files
+*.backup
