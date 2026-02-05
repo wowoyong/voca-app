@@ -9,7 +9,13 @@ interface StatsData {
   reviewDue: number;
   streak: number;
   totalLearned: number;
-  calendar: { date: string; count: number }[];
+  calendar: { 
+    date: string; 
+    count: number;
+    todayCompleted?: boolean;
+    reviewCompleted?: boolean;
+    quizCompleted?: boolean;
+  }[];
   quizAccuracy: number;
   totalQuizzes: number;
 }
@@ -52,10 +58,32 @@ export default function StatsPage() {
   }
 
   return (
-    <div className="max-w-lg mx-auto px-4 pt-6">
+    <div className="max-w-lg mx-auto px-4 pt-6 pb-20">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-bold text-foreground">학습 통계</h1>
         <LanguageToggle />
+      </div>
+
+      {/* Streak Card - Emphasized */}
+      <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-6 mb-6 text-white shadow-lg">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm opacity-90 mb-1">연속 학습 일수</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-5xl font-bold">{stats?.streak ?? 0}</span>
+              <span className="text-2xl font-medium">일</span>
+            </div>
+            {(stats?.streak ?? 0) > 0 && (
+              <p className="text-sm opacity-80 mt-2">
+                {stats?.streak === 1 ? "좋은 시작이에요!" : 
+                 stats?.streak && stats.streak < 7 ? "계속 이어가세요!" :
+                 stats?.streak && stats.streak < 30 ? "대단해요! 🎉" :
+                 "놀라워요! 🏆"}
+              </p>
+            )}
+          </div>
+          <div className="text-6xl">🔥</div>
+        </div>
       </div>
 
       {/* Calendar */}
@@ -65,24 +93,20 @@ export default function StatsPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         <div className="bg-card rounded-2xl border p-4">
           <p className="text-xs text-muted-foreground mb-1">학습 단어</p>
-          <p className="text-3xl font-bold text-foreground">{stats?.totalLearned ?? 0}</p>
+          <p className="text-2xl font-bold text-foreground">{stats?.totalLearned ?? 0}</p>
         </div>
         <div className="bg-card rounded-2xl border p-4">
           <p className="text-xs text-muted-foreground mb-1">퀴즈 정확도</p>
-          <p className="text-3xl font-bold text-green-600">
+          <p className="text-2xl font-bold text-green-600">
             {stats?.totalQuizzes ? `${Math.round(stats.quizAccuracy)}%` : "-"}
           </p>
         </div>
         <div className="bg-card rounded-2xl border p-4">
-          <p className="text-xs text-muted-foreground mb-1">연속 학습</p>
-          <p className="text-3xl font-bold text-orange-500">{stats?.streak ?? 0}일</p>
-        </div>
-        <div className="bg-card rounded-2xl border p-4">
           <p className="text-xs text-muted-foreground mb-1">복습 예정</p>
-          <p className="text-3xl font-bold text-red-500">{stats?.reviewDue ?? 0}</p>
+          <p className="text-2xl font-bold text-red-500">{stats?.reviewDue ?? 0}</p>
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-# Voca App
+# Wordio
 
 다국어 단어 학습 웹 애플리케이션 - Spaced Repetition 시스템 기반
 

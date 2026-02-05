@@ -25,8 +25,8 @@ const quickActions = [
   },
   {
     href: "/flashcard",
-    label: "플래시카드",
-    description: "빈칸 채우기 문제",
+    label: "빈칸 채우기",
+    description: "학습한 단어 빈칸 테스트",
     icon: (
       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
@@ -36,20 +36,10 @@ const quickActions = [
   {
     href: "/quiz",
     label: "퀴즈",
-    description: "실력 테스트",
+    description: "4지선다 실력 테스트",
     icon: (
       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
-      </svg>
-    ),
-  },
-  {
-    href: "/review",
-    label: "복습",
-    description: "복습 예정 단어",
-    icon: (
-      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" />
       </svg>
     ),
   },
@@ -65,6 +55,8 @@ export default function HomePage() {
       .then(setStats)
       .catch(() => {});
   }, [language]);
+
+  const hasReviewDue = (stats?.reviewDue ?? 0) > 0;
 
   return (
     <div className="max-w-lg mx-auto px-4 pt-6">
@@ -89,39 +81,62 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div className="bg-card border rounded-2xl p-5 mb-6">
+      {/* 연속 학습 카드 */}
+      <div className="bg-card border rounded-2xl p-5 mb-4">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-muted-foreground">연속 학습</p>
             <p className="text-4xl font-bold text-foreground">{stats?.streak ?? 0}<span className="text-lg font-normal text-muted-foreground ml-1">일</span></p>
           </div>
-          <div className="text-right space-y-1">
+          <div className="text-right">
             <p className="text-sm text-muted-foreground">
               학습 단어 <span className="font-semibold text-foreground">{stats?.totalLearned ?? 0}</span>
-            </p>
-            <p className="text-sm text-muted-foreground">
-              복습 대기 <span className="font-semibold text-orange-500">{stats?.reviewDue ?? 0}</span>
             </p>
           </div>
         </div>
       </div>
 
+      {/* 복습 CTA 배너 */}
+      {hasReviewDue && (
+        <Link
+          href="/review"
+          className="block bg-orange-50 border border-orange-200 rounded-2xl p-4 mb-4 active:scale-[0.98] transition-transform"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+                <svg className="w-5 h-5 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-semibold text-orange-800 text-sm">복습할 단어가 있어요</p>
+                <p className="text-xs text-orange-600">{stats?.reviewDue}개 단어가 복습을 기다리고 있습니다</p>
+              </div>
+            </div>
+            <svg className="w-5 h-5 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </Link>
+      )}
+
       <h2 className="text-lg font-semibold text-foreground mb-3">빠른 시작</h2>
-      <div className="grid grid-cols-2 gap-3 mb-6">
+      <div className="grid grid-cols-1 gap-3 mb-6">
         {quickActions.map((action) => (
           <Link
             key={action.href}
             href={action.href}
-            className="bg-card border rounded-2xl p-4 active:scale-[0.97] transition-transform hover:bg-accent"
+            className="bg-card border rounded-2xl p-4 active:scale-[0.98] transition-transform hover:bg-accent flex items-center gap-4"
           >
-            <div className="text-foreground mb-3">{action.icon}</div>
-            <span className="font-semibold text-sm text-foreground block">{action.label}</span>
-            <span className="text-xs text-muted-foreground">{action.description}</span>
-            {action.href === "/review" && stats?.reviewDue ? (
-              <span className="ml-1 bg-orange-100 text-orange-700 text-xs px-1.5 py-0.5 rounded-full">
-                {stats.reviewDue}
-              </span>
-            ) : null}
+            <div className="text-foreground shrink-0">{action.icon}</div>
+            <div className="flex-1">
+              <span className="font-semibold text-sm text-foreground block">{action.label}</span>
+              <span className="text-xs text-muted-foreground">{action.description}</span>
+            </div>
+            <svg className="w-4 h-4 text-muted-foreground shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
           </Link>
         ))}
       </div>

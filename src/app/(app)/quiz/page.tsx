@@ -94,6 +94,24 @@ export default function QuizPage() {
     }
   }, [fetchQuiz]);
 
+  // Track quiz completion - MUST be before conditional returns
+  const completed = currentIdx >= questions.length && questions.length > 0;
+
+  useEffect(() => {
+    if (completed) {
+      const today = new Date().toISOString().split('T')[0];
+      fetch('/api/daily-session/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date: today,
+          type: 'quiz',
+          language: language === 'en' ? 'en' : 'jp',
+        }),
+      }).catch((err) => console.error('[Quiz] Failed to mark completion:', err));
+    }
+  }, [completed, language]);
+
   const handleAnswer = (_selectedId: number, correct: boolean) => {
     const newScore = correct ? score + 1 : score;
     if (correct) setScore(newScore);
@@ -135,8 +153,6 @@ export default function QuizPage() {
       </div>
     );
   }
-
-  const completed = currentIdx >= questions.length;
 
   return (
     <div className="max-w-lg mx-auto px-4 pt-6 pb-24">

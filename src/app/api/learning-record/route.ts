@@ -4,7 +4,7 @@ import { prismaJapanese } from "@/lib/db-japanese";
 import { getAuthUser } from "@/lib/auth";
 import { getOrCreateLanguageUser } from "@/lib/user";
 
-// SM-2 algorithm
+// SM-2 algorithm - nextReviewAt is set to start of the target day (midnight)
 function sm2(quality: number, repetitionCount: number, easeFactor: number, interval: number) {
   let newEF = easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
   if (newEF < 1.3) newEF = 1.3;
@@ -26,8 +26,10 @@ function sm2(quality: number, repetitionCount: number, easeFactor: number, inter
     }
   }
 
+  // Set nextReviewAt to the start of the target day (00:00:00)
   const nextReview = new Date();
   nextReview.setDate(nextReview.getDate() + newInterval);
+  nextReview.setHours(0, 0, 0, 0);
 
   return {
     repetitionCount: newRepCount,
@@ -89,7 +91,8 @@ async function updateRecord(
         date: today,
         userId,
         wordsLearned: existing ? 0 : 1,
-        wordsReviewed: existing ? 1 : 0 },
+        wordsReviewed: existing ? 1 : 0,
+      },
     });
   }
 }
@@ -98,7 +101,6 @@ export async function POST(req: NextRequest) {
   const { lang, contentType, contentId, quality } = await req.json();
 
   try {
-    // Get authenticated user
     const authUser = await getAuthUser();
     if (!authUser) {
       return NextResponse.json({ error: "인증이 필요합니다" }, { status: 401 });
@@ -121,9 +123,12 @@ async function getStats(
   prisma: any,
   userId: number,
 ) {
-  const now = new Date();
+  // Use end of today so that "due today" words are counted
+  const endOfToday = new Date();
+  endOfToday.setHours(23, 59, 59, 999);
+
   const reviewDue = await prisma.learningRecord.count({
-    where: { userId, nextReviewAt: { lte: now } },
+    where: { userId, nextReviewAt: { lte: endOfToday } },
   });
 
   const totalLearned = await prisma.learningRecord.count({
@@ -155,7 +160,6 @@ export async function GET(req: NextRequest) {
   const lang = req.nextUrl.searchParams.get("lang") || "en";
 
   try {
-    // Get authenticated user
     const authUser = await getAuthUser();
     if (!authUser) {
       return NextResponse.json({ error: "인증이 필요합니다" }, { status: 401 });

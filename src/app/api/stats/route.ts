@@ -1,25 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prismaEnglish } from "@/lib/db-english";
 import { prismaJapanese } from "@/lib/db-japanese";
-
-const WEB_USER_TELEGRAM_ID = BigInt(9999999999);
+import { getAuthUser } from "@/lib/auth";
+import { getOrCreateLanguageUser } from "@/lib/user";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function fetchStats(prisma: any) {
-  const user = await prisma.user.findUnique({
-    where: { telegramId: WEB_USER_TELEGRAM_ID },
-  });
-
-  if (!user) {
-    return { calendar: [], quizAccuracy: 0, totalQuizzes: 0 };
-  }
-
+async function fetchStats(prisma: any, userId: number) {
   const threeMonthsAgo = new Date();
   threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
   const dateStr = threeMonthsAgo.toISOString().split("T")[0];
 
   const sessions = await prisma.dailySession.findMany({
-    where: { userId: user.id, date: { gte: dateStr } },
+    where: { userId, date: { gte: dateStr } },
     orderBy: { date: "asc" },
   });
 
@@ -27,10 +19,13 @@ async function fetchStats(prisma: any) {
   const calendar = sessions.map((s: any) => ({
     date: s.date,
     count: s.wordsLearned + s.wordsReviewed,
+    todayCompleted: s.todayCompleted || false,
+    reviewCompleted: s.reviewCompleted || false,
+    quizCompleted: s.quizCompleted || false,
   }));
 
   const quizAttempts = await prisma.quizAttempt.findMany({
-    where: { userId: user.id },
+    where: { userId },
   });
 
   const totalQuizzes = quizAttempts.length;
@@ -45,8 +40,16 @@ export async function GET(req: NextRequest) {
   const lang = req.nextUrl.searchParams.get("lang") || "en";
 
   try {
-    const prisma = lang === "jp" ? prismaJapanese : prismaEnglish;
-    const result = await fetchStats(prisma);
+    const authUser = await getAuthUser();
+    if (!authUser) {
+      return NextResponse.json({ error: "인증이 필요합니다" }, { status: 401 });
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const prisma: any = lang === "jp" ? prismaJapanese : prismaEnglish;
+    const user = await getOrCreateLanguageUser(prisma, authUser.webUserId, authUser.username);
+
+    const result = await fetchStats(prisma, user.id);
     return NextResponse.json(result);
   } catch (error) {
     console.error("Stats API error:", error);

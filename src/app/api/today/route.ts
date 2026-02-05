@@ -40,6 +40,8 @@ async function getTodayData(prisma: any, userId: number) {
   const now = new Date();
   const todaySeed = getTodaySeed();
 
+  console.log("[Today API] Getting data for userId:", userId);
+
   // Get learned word IDs
   const learnedWordRecords = await prisma.learningRecord.findMany({
     where: { userId, contentType: "word", wordId: { not: null } },
@@ -48,15 +50,32 @@ async function getTodayData(prisma: any, userId: number) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const learnedWordIds = learnedWordRecords.map((r: any) => r.wordId!);
 
-  // ✅ Fetch MORE words and use seeded shuffle for consistent daily selection
-  const allNewWords = await prisma.word.findMany({
+  console.log("[Today API] Learned word IDs count:", learnedWordIds.length);
+
+  // ✅ 신규 회원도 단어를 볼 수 있도록 수정
+  // 학습하지 않은 단어 우선, 없으면 전체 단어에서 선택
+  let allNewWords = await prisma.word.findMany({
     where: learnedWordIds.length > 0 ? { id: { notIn: learnedWordIds } } : {},
-    take: 100, // Fetch 100 words for better variety
+    take: 100,
     orderBy: { difficulty: "asc" },
   });
+
+  console.log("[Today API] Unlearned words found:", allNewWords.length);
+
+  // 학습하지 않은 단어가 없으면 전체 단어에서 선택
+  if (allNewWords.length === 0) {
+    console.log("[Today API] No unlearned words, fetching all words");
+    allNewWords = await prisma.word.findMany({
+      take: 100,
+      orderBy: { difficulty: "asc" },
+    });
+    console.log("[Today API] All words found:", allNewWords.length);
+  }
   
   // ✅ Use seeded shuffle - same seed = same order for the day
   const newWords = seededShuffle(allNewWords, todaySeed).slice(0, 15);
+
+  console.log("[Today API] Selected new words:", newWords.length);
 
   // Get review words (due for review)
   const reviewRecords = await prisma.learningRecord.findMany({
@@ -68,7 +87,8 @@ async function getTodayData(prisma: any, userId: number) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const reviewWords = reviewRecords.filter((r: any) => r.word).map((r: any) => r.word!);
 
-  // ✅ Return all expected fields (expressions and grammar as empty arrays for now)
+  console.log("[Today API] Review words:", reviewWords.length);
+
   return { 
     newWords, 
     reviewWords,
@@ -81,14 +101,22 @@ async function getTodayData(prisma: any, userId: number) {
 export async function GET(req: NextRequest) {
   const lang = req.nextUrl.searchParams.get("lang") || "en";
 
+  console.log("[Today API] Request received for lang:", lang);
+
   try {
     const authUser = await getAuthUser();
     if (!authUser) {
+      console.log("[Today API] No auth user");
       return NextResponse.json({ error: "인증이 필요합니다" }, { status: 401 });
     }
 
+    console.log("[Today API] Auth user:", { webUserId: authUser.webUserId, username: authUser.username });
+
     const prisma = lang === "jp" ? prismaJapanese : prismaEnglish;
     const user = await getOrCreateLanguageUser(prisma, authUser.webUserId, authUser.username);
+
+    console.log("[Today API] Language user:", { id: user.id, telegramId: user.telegramId.toString(), username: user.username });
+
     const data = await getTodayData(prisma, user.id);
 
     const serialize = (obj: unknown): unknown => {
@@ -99,9 +127,12 @@ export async function GET(req: NextRequest) {
       );
     };
 
-    return NextResponse.json(serialize({ userId: user.id, ...data }));
+    const response = serialize({ userId: user.id, ...data });
+    console.log("[Today API] Success, returning data");
+    
+    return NextResponse.json(response);
   } catch (error) {
-    console.error("Today API error:", error);
+    console.error("[Today API] Error:", error);
     return NextResponse.json({ error: "데이터를 가져올 수 없습니다" }, { status: 500 });
   }
 }

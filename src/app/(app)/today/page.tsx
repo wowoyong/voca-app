@@ -5,6 +5,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import SwipeableCard, { CardData } from "@/components/SwipeableCard";
 import ProgressBar from "@/components/ProgressBar";
 import LanguageToggle from "@/components/LanguageToggle";
+import Link from "next/link";
 
 interface TodayWord {
   id: number;
@@ -100,39 +101,104 @@ function grammarToCard(g: TodayGrammar, lang: "en" | "jp"): CardData {
   };
 }
 
+function getTodayString(): string {
+  const today = new Date();
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+}
+
 export default function TodayPage() {
   const { language } = useLanguage();
   const [cards, setCards] = useState<CardData[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [loading, setLoading] = useState(true);
   const [completed, setCompleted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
     setCompleted(false);
+    setError(null);
+
     fetch(`/api/today?lang=${language}`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((d: TodayData) => {
         const allCards: CardData[] = [
-          ...d.newWords.map((w) => wordToCard(w, language)),
-          ...d.reviewWords.map((w) => wordToCard(w, language)),
-          ...d.newExpressions.map((e) => exprToCard(e, language)),
-          ...d.reviewExpressions.map((e) => exprToCard(e, language)),
-          ...d.grammar.map((g) => grammarToCard(g, language)),
+          ...(d.newWords || []).map((w) => wordToCard(w, language)),
+          ...(d.reviewWords || []).map((w) => wordToCard(w, language)),
+          ...(d.newExpressions || []).map((e) => exprToCard(e, language)),
+          ...(d.reviewExpressions || []).map((e) => exprToCard(e, language)),
+          ...(d.grammar || []).map((g) => grammarToCard(g, language)),
         ];
         setCards(allCards);
+
+        const storageKey = `today-progress-${language}`;
+        const savedProgress = sessionStorage.getItem(storageKey);
+        if (savedProgress) {
+          try {
+            const { currentIdx: savedIdx, date } = JSON.parse(savedProgress);
+            const today = getTodayString();
+            if (date === today && savedIdx >= 0 && savedIdx < allCards.length) {
+              setCurrentIdx(savedIdx);
+              return;
+            }
+          } catch {}
+        }
         setCurrentIdx(0);
       })
-      .catch(() => {})
+      .catch((err) => {
+        setError(err.message || "데이터를 불러올 수 없습니다");
+      })
       .finally(() => setLoading(false));
   }, [language]);
 
-  const handleNext = () => {
+  useEffect(() => {
+    if (cards.length > 0 && !completed) {
+      const storageKey = `today-progress-${language}`;
+      const progress = { currentIdx, date: getTodayString() };
+      sessionStorage.setItem(storageKey, JSON.stringify(progress));
+    }
+  }, [currentIdx, language, cards.length, completed]);
+
+  const saveProgress = async (quality: number) => {
+    if (!cards[currentIdx]) return;
+    const card = cards[currentIdx];
+    try {
+      await fetch("/api/learning-record", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lang: language,
+          contentType: card.type,
+          contentId: card.id,
+          quality,
+        }),
+      });
+    } catch {}
+  };
+
+  const handleNext = async (quality?: number) => {
     if (cards.length === 0) return;
-    
-    // 마지막 단어면 완료 화면으로
+    if (quality !== undefined) {
+      await saveProgress(quality);
+    }
     if (currentIdx >= cards.length - 1) {
       setCompleted(true);
+      const storageKey = `today-progress-${language}`;
+      sessionStorage.removeItem(storageKey);
+
+      const today = new Date().toISOString().split("T")[0];
+      fetch("/api/daily-session/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date: today,
+          type: "today",
+          language: language === "en" ? "en" : "jp",
+        }),
+      }).catch(() => {});
     } else {
       setCurrentIdx((prev) => prev + 1);
     }
@@ -146,12 +212,31 @@ export default function TodayPage() {
   const handleRestart = () => {
     setCurrentIdx(0);
     setCompleted(false);
+    const storageKey = `today-progress-${language}`;
+    sessionStorage.removeItem(storageKey);
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
         <div className="text-muted-foreground text-lg">로딩 중...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-lg mx-auto px-4 pt-6 text-center">
+        <div className="mt-20">
+          <p className="text-red-500 font-semibold text-lg mb-2">오류 발생</p>
+          <p className="text-muted-foreground">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-6 px-6 py-2 bg-primary text-primary-foreground rounded-lg"
+          >
+            다시 시도
+          </button>
+        </div>
       </div>
     );
   }
@@ -164,7 +249,6 @@ export default function TodayPage() {
     );
   }
 
-  // 완료 화면
   if (completed) {
     return (
       <div className="max-w-lg mx-auto px-4 pt-6 pb-24">
@@ -173,19 +257,37 @@ export default function TodayPage() {
           <LanguageToggle />
         </div>
 
-        <div className="flex flex-col items-center justify-center mt-20 space-y-6">
-          <div className="text-6xl mb-4">🎉</div>
-          <h2 className="text-2xl font-bold text-foreground">완료하였습니다!</h2>
+        <div className="flex flex-col items-center justify-center mt-16 space-y-6">
+          <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center">
+            <svg className="w-10 h-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-foreground">학습 완료!</h2>
           <p className="text-muted-foreground text-center">
-            오늘의 {cards.length}개 단어를 모두 학습했습니다.
+            오늘 {cards.length}개 항목을 모두 학습했습니다.
           </p>
-          
-          <button
-            onClick={handleRestart}
-            className="mt-6 px-8 py-3 bg-primary text-primary-foreground rounded-xl font-medium active:scale-95 transition-transform"
-          >
-            처음으로 돌아가기
-          </button>
+
+          <div className="w-full space-y-3 mt-4">
+            <Link
+              href="/quiz"
+              className="block w-full px-8 py-3 bg-primary text-primary-foreground rounded-xl font-medium text-center active:scale-95 transition-transform"
+            >
+              퀴즈로 복습하기
+            </Link>
+            <Link
+              href="/flashcard"
+              className="block w-full px-8 py-3 bg-secondary text-secondary-foreground rounded-xl font-medium text-center active:scale-95 transition-transform"
+            >
+              빈칸 채우기
+            </Link>
+            <button
+              onClick={handleRestart}
+              className="w-full px-8 py-3 text-muted-foreground rounded-xl font-medium active:scale-95 transition-transform"
+            >
+              처음부터 다시 보기
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -206,11 +308,10 @@ export default function TodayPage() {
       <SwipeableCard
         key={currentIdx}
         card={cards[currentIdx]}
-        onSwipeRight={handleNext}
-        onSwipeLeft={handleNext}
+        onSwipeRight={() => handleNext(5)}
+        onSwipeLeft={() => handleNext(2)}
       />
 
-      {/* 이전/다음 버튼 */}
       <div className="flex justify-between items-center gap-4 mt-6">
         {!isFirst ? (
           <button
@@ -227,12 +328,16 @@ export default function TodayPage() {
         )}
 
         <button
-          onClick={handleNext}
-          className="flex-1 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium active:scale-95 transition-transform flex items-center justify-center gap-2"
+          onClick={() => handleNext(5)}
+          className={`flex-1 px-6 py-3 rounded-xl font-medium active:scale-95 transition-transform flex items-center justify-center gap-2 ${
+            isLast
+              ? "bg-green-600 text-white"
+              : "bg-primary text-primary-foreground"
+          }`}
         >
-          <span>{isLast ? "완료" : "다음"}</span>
+          <span>{isLast ? "학습 끝내기" : "다음"}</span>
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            <path strokeLinecap="round" strokeLinejoin="round" d={isLast ? "M5 13l4 4L19 7" : "M9 5l7 7-7 7"} />
           </svg>
         </button>
       </div>

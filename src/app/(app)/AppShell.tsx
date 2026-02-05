@@ -5,6 +5,10 @@ import { useRouter } from "next/navigation";
 import { LanguageContext } from "@/hooks/useLanguage";
 import { useLanguageState } from "@/hooks/useLanguage";
 import BottomNav from "@/components/BottomNav";
+import AdBanner from "@/components/AdBanner";
+import AdInterstitial from "@/components/AdInterstitial";
+import InstallPrompt from "@/components/InstallPrompt";
+import PushNotification from "@/components/PushNotification";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const langState = useLanguageState();
@@ -40,7 +44,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <LanguageContext.Provider value={langState}>
-      <div className="min-h-dvh pb-16">
+      {/* 전면 광고 (세션당 1회) */}
+      <AdInterstitial />
+      
+      {/* PWA 설치 프롬프트 */}
+      <InstallPrompt />
+      
+      {/* Push uc54cub9bc ud504ub86cud504ud2b8 */}
+      <PushNotification />
+      
+      <div className="min-h-dvh pb-28">
         {/* Top bar */}
         {username && (
           <div className="flex justify-end items-center px-4 h-10 border-b border-border bg-background">
@@ -72,6 +85,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         )}
         {children}
       </div>
+      
+      {/* 배너 광고 (하단 고정) */}
+      <AdBanner />
+      
+      {/* 하단 네비게이션 */}
       <BottomNav />
     </LanguageContext.Provider>
   );

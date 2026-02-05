@@ -120,6 +120,9 @@ model DailySession {
   quizScore     Int?
   totalTime     Int?
   completed     Boolean  @default(false)
+  todayCompleted   Boolean  @default(false)
+  reviewCompleted  Boolean  @default(false)
+  quizCompleted    Boolean  @default(false)
   createdAt     DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
