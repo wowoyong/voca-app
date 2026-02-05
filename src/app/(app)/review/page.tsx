@@ -99,7 +99,7 @@ export default function ReviewPage() {
       .finally(() => setLoading(false));
   }, [language]);
 
-  const handleSwipe = async (quality: number) => {
+  const handleAnswer = async (quality: number) => {
     if (!cards[currentIdx]) return;
 
     await fetch("/api/learning-record", {
@@ -170,13 +170,31 @@ export default function ReviewPage() {
           <SwipeableCard
             key={currentIdx}
             card={cards[currentIdx]}
-            onSwipeRight={() => handleSwipe(5)}
-            onSwipeLeft={() => handleSwipe(0)}
+            onSwipeRight={() => handleAnswer(5)}
+            onSwipeLeft={() => handleAnswer(0)}
             showSwipeHints
           />
-          <div className="flex justify-center gap-6 mt-6 text-sm text-muted-foreground">
-            <span>&larr; 모르겠어요</span>
-            <span>알아요! &rarr;</span>
+
+          <div className="flex justify-between items-center gap-4 mt-6">
+            <button
+              onClick={() => handleAnswer(0)}
+              className="flex-1 px-6 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl font-medium active:scale-95 transition-transform flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              <span>모르겠어요</span>
+            </button>
+
+            <button
+              onClick={() => handleAnswer(5)}
+              className="flex-1 px-6 py-3 bg-green-50 text-green-600 border border-green-200 rounded-xl font-medium active:scale-95 transition-transform flex items-center justify-center gap-2"
+            >
+              <span>알아요!</span>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </button>
           </div>
         </>
       )}

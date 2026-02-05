@@ -17,26 +17,31 @@ interface UseSwipeOptions {
 export function useSwipe({ onSwipeLeft, onSwipeRight, threshold = 100 }: UseSwipeOptions) {
   const startX = useRef(0);
   const currentOffsetX = useRef(0);
+  const isDragging = useRef(false);
   const [state, setState] = useState<SwipeState>({
     offsetX: 0,
     swiping: false,
     direction: null,
   });
 
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    startX.current = e.touches[0].clientX;
+  const handleStart = useCallback((clientX: number) => {
+    startX.current = clientX;
     currentOffsetX.current = 0;
+    isDragging.current = true;
     setState({ offsetX: 0, swiping: true, direction: null });
   }, []);
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    const dx = e.touches[0].clientX - startX.current;
+  const handleMove = useCallback((clientX: number) => {
+    if (!isDragging.current) return;
+    const dx = clientX - startX.current;
     currentOffsetX.current = dx;
     const direction = dx > 0 ? "right" : dx < 0 ? "left" : null;
     setState({ offsetX: dx, swiping: true, direction });
   }, []);
 
-  const handleTouchEnd = useCallback(() => {
+  const handleEnd = useCallback(() => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
     const dx = currentOffsetX.current;
     if (dx > threshold && onSwipeRight) {
       onSwipeRight();
@@ -47,12 +52,49 @@ export function useSwipe({ onSwipeLeft, onSwipeRight, threshold = 100 }: UseSwip
     setState({ offsetX: 0, swiping: false, direction: null });
   }, [threshold, onSwipeLeft, onSwipeRight]);
 
+  // Touch handlers
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    handleStart(e.touches[0].clientX);
+  }, [handleStart]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    handleMove(e.touches[0].clientX);
+  }, [handleMove]);
+
+  const handleTouchEnd = useCallback(() => {
+    handleEnd();
+  }, [handleEnd]);
+
+  // Mouse handlers
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    handleStart(e.clientX);
+  }, [handleStart]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    handleMove(e.clientX);
+  }, [handleMove]);
+
+  const handleMouseUp = useCallback(() => {
+    handleEnd();
+  }, [handleEnd]);
+
+  const handleMouseLeave = useCallback(() => {
+    if (isDragging.current) {
+      handleEnd();
+    }
+  }, [handleEnd]);
+
   return {
     ...state,
     handlers: {
       onTouchStart: handleTouchStart,
       onTouchMove: handleTouchMove,
       onTouchEnd: handleTouchEnd,
+      onMouseDown: handleMouseDown,
+      onMouseMove: handleMouseMove,
+      onMouseUp: handleMouseUp,
+      onMouseLeave: handleMouseLeave,
     },
     style: {
       transform: state.swiping
