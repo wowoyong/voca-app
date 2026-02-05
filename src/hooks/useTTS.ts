@@ -2,9 +2,11 @@
 
 import { useCallback, useRef } from "react";
 
+/** TTS(음성합성) 훅 - Google TTS API 우선, Web Speech API 폴백 */
 export function useTTS() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // 텍스트를 음성으로 재생 (Google TTS 실패 시 Web Speech API 사용)
   const speak = useCallback(async (text: string, lang: "en" | "jp") => {
     // Stop any currently playing audio
     if (audioRef.current) {
@@ -36,6 +38,7 @@ export function useTTS() {
     }
   }, []);
 
+  // 현재 재생 중인 음성을 중지
   const stop = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.pause();

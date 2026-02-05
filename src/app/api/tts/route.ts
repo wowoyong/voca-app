@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+/** GET: 텍스트를 음성으로 변환하여 MP3 오디오 반환 (Google TTS) */
 export async function GET(req: NextRequest) {
   const text = req.nextUrl.searchParams.get("text");
   const lang = req.nextUrl.searchParams.get("lang") || "en";

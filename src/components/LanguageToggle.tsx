@@ -2,6 +2,7 @@
 
 import { useLanguage } from "@/hooks/useLanguage";
 
+/** 학습 언어 전환 토글 버튼 (EN/JP) */
 export default function LanguageToggle() {
   const { language, toggleLanguage } = useLanguage();
 

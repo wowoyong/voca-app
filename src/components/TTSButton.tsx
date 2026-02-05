@@ -10,10 +10,12 @@ interface TTSButtonProps {
   className?: string;
 }
 
+/** 텍스트 음성 변환(TTS) 재생 버튼 컴포넌트 */
 export default function TTSButton({ text, lang, size = "md", className = "" }: TTSButtonProps) {
   const { speak } = useTTS();
   const [playing, setPlaying] = useState(false);
 
+  // 클릭 시 TTS 재생 및 애니메이션 처리
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     setPlaying(true);

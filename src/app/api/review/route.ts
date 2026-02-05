@@ -4,6 +4,7 @@ import { prismaJapanese } from "@/lib/db-japanese";
 import { getAuthUser } from "@/lib/auth";
 import { getOrCreateLanguageUser } from "@/lib/user";
 
+// 배열 랜덤 셔플
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -13,6 +14,7 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+// 복습 대상 단어와 표현 조회 (오늘까지 복습 예정인 항목)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getReviewData(prisma: any, userId: number) {
   // End of today (23:59:59) in server timezone
@@ -57,6 +59,7 @@ async function getReviewData(prisma: any, userId: number) {
   };
 }
 
+/** GET: 복습 대상 단어/표현 조회 (단어 최대 30개, 표현 최대 10개) */
 export async function GET(req: NextRequest) {
   const lang = req.nextUrl.searchParams.get("lang") || "en";
 
@@ -72,6 +75,7 @@ export async function GET(req: NextRequest) {
 
     const data = await getReviewData(prisma, user.id);
 
+    // bigint 값을 문자열로 변환하여 직렬화
     const serialize = (obj: unknown): unknown => {
       return JSON.parse(
         JSON.stringify(obj, (_key, value) =>

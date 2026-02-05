@@ -4,7 +4,7 @@ import { prismaJapanese } from "@/lib/db-japanese";
 import { getAuthUser } from "@/lib/auth";
 import { getOrCreateLanguageUser } from "@/lib/user";
 
-// SM-2 algorithm - nextReviewAt is set to start of the target day (midnight)
+// SM-2 알고리즘 - 반복 학습 간격 계산 (다음 복습일은 자정 기준)
 function sm2(quality: number, repetitionCount: number, easeFactor: number, interval: number) {
   let newEF = easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
   if (newEF < 1.3) newEF = 1.3;
@@ -39,6 +39,7 @@ function sm2(quality: number, repetitionCount: number, easeFactor: number, inter
   };
 }
 
+// 학습 기록 생성 또는 갱신 후 일일 세션 카운트 업데이트
 async function updateRecord(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   prisma: any,
@@ -97,6 +98,7 @@ async function updateRecord(
   }
 }
 
+/** POST: 학습 기록 저장 및 SM-2 알고리즘으로 다음 복습일 계산 */
 export async function POST(req: NextRequest) {
   const { lang, contentType, contentId, quality } = await req.json();
 
@@ -118,6 +120,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
+// 복습 예정 수, 총 학습 수, 연속 학습일(스트릭) 조회
 async function getStats(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   prisma: any,
@@ -156,6 +159,7 @@ async function getStats(
   return { userId, reviewDue, totalLearned, streak };
 }
 
+/** GET: 사용자 학습 통계 조회 (복습 예정, 총 학습, 스트릭) */
 export async function GET(req: NextRequest) {
   const lang = req.nextUrl.searchParams.get("lang") || "en";
 

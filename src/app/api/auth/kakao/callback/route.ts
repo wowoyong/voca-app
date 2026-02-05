@@ -5,6 +5,7 @@ import { prismaAuth } from "@/lib/db-auth";
 const KAKAO_TOKEN_URL = "https://kauth.kakao.com/oauth/token";
 const KAKAO_USER_INFO_URL = "https://kapi.kakao.com/v2/user/me";
 
+/** GET: 카카오 로그인 콜백 처리 (토큰 교환, 사용자 생성/조회, JWT 발급) */
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");
   

@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 
+// 로그인 폼 - 카카오 로그인 버튼 및 에러 표시
 function LoginForm() {
   const [error, setError] = useState("");
   const searchParams = useSearchParams();
@@ -15,6 +16,7 @@ function LoginForm() {
     }
   }, [searchParams]);
 
+  // 카카오 OAuth 로그인 페이지로 이동
   const handleKakaoLogin = () => {
     window.location.href = "/api/auth/kakao";
   };
@@ -80,6 +82,7 @@ function LoginForm() {
   );
 }
 
+/** 로그인 페이지 - Suspense 래핑된 카카오 로그인 */
 export default function LoginPage() {
   return (
     <Suspense fallback={

@@ -7,6 +7,7 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
+/** PWA 설치 유도 프롬프트 컴포넌트 */
 export default function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
@@ -33,6 +34,7 @@ export default function InstallPrompt() {
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
+  // PWA 설치 프롬프트 실행
   const handleInstall = async () => {
     if (!deferredPrompt) return;
 
@@ -46,6 +48,7 @@ export default function InstallPrompt() {
     setDeferredPrompt(null);
   };
 
+  // 설치 프롬프트 닫기 및 상태 저장
   const handleDismiss = () => {
     setShowPrompt(false);
     localStorage.setItem("pwa-install-dismissed", "true");

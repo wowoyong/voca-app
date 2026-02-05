@@ -14,6 +14,7 @@ interface StatsCalendarProps {
   data: DayData[];
 }
 
+/** 월별 학습 현황 캘린더 컴포넌트 */
 export default function StatsCalendar({ data }: StatsCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   
@@ -48,6 +49,7 @@ export default function StatsCalendar({ data }: StatsCalendarProps) {
     return { totalDays, tier1Days, tier2Days, tier3Days };
   }, [data, year, month, daysInMonth]);
   
+  // 학습 완료 단계에 따른 배경색 반환
   const getColor = (dayData: DayData | undefined) => {
     if (!dayData || dayData.count === 0) return "bg-gray-200";
     
@@ -68,10 +70,12 @@ export default function StatsCalendar({ data }: StatsCalendarProps) {
     return "bg-green-200";
   };
   
+  // 이전 달로 이동
   const prevMonth = () => {
     setCurrentDate(new Date(year, month - 1, 1));
   };
   
+  // 다음 달로 이동
   const nextMonth = () => {
     setCurrentDate(new Date(year, month + 1, 1));
   };

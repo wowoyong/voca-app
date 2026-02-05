@@ -4,6 +4,7 @@ import { prismaJapanese } from "@/lib/db-japanese";
 import { getAuthUser } from "@/lib/auth";
 import { getOrCreateLanguageUser } from "@/lib/user";
 
+// 배열 랜덤 셔플
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -13,12 +14,13 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-// Seeded random for today's words
+// 시드 기반 난수 생성 (오늘의 단어용)
 function seededRandom(seed: number) {
   let x = Math.sin(seed++) * 10000;
   return x - Math.floor(x);
 }
 
+// 시드 기반 배열 셔플
 function seededShuffle<T>(arr: T[], seed: number): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -28,6 +30,7 @@ function seededShuffle<T>(arr: T[], seed: number): T[] {
   return a;
 }
 
+// 오늘 날짜를 시드 숫자로 변환
 function getTodaySeed(): number {
   const today = new Date();
   const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -41,6 +44,7 @@ function getTodaySeed(): number {
   return Math.abs(hash);
 }
 
+// 오늘의 학습 단어 15개 조회 (시드 기반 고정 순서)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getTodayWords(prisma: any, userId: number) {
   const todaySeed = getTodaySeed();
@@ -61,6 +65,7 @@ async function getTodayWords(prisma: any, userId: number) {
   return seededShuffle(allNewWords, todaySeed).slice(0, 15);
 }
 
+// 학습 완료된 단어 중 랜덤 15개 조회 (복습용)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getReviewWords(prisma: any, userId: number) {
   const learnedWordRecords = await prisma.learningRecord.findMany({
@@ -78,6 +83,7 @@ async function getReviewWords(prisma: any, userId: number) {
   return shuffle(learnedWords).slice(0, 15);
 }
 
+// 단어 목록으로 4지선다 퀴즈 문제 생성
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function generateQuiz(prisma: any, lang: string, words: any[]) {
   if (words.length < 4) {
@@ -110,6 +116,7 @@ async function generateQuiz(prisma: any, lang: string, words: any[]) {
   return questions;
 }
 
+/** GET: 퀴즈 문제 생성 및 반환 (today/review/all 모드) */
 export async function GET(req: NextRequest) {
   const lang = req.nextUrl.searchParams.get("lang") || "en";
   const mode = req.nextUrl.searchParams.get("mode") || "all";

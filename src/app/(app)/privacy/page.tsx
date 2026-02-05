@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+/** 개인정보 처리방침 페이지 */
 export default function PrivacyPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 pt-6 pb-20">

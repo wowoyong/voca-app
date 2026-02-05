@@ -20,6 +20,7 @@ interface StatsData {
   totalQuizzes: number;
 }
 
+/** 학습 통계 페이지 - 연속 학습, 달력, 정확도 표시 */
 export default function StatsPage() {
   const { language } = useLanguage();
   const [stats, setStats] = useState<StatsData | null>(null);

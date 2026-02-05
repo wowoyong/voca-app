@@ -6,6 +6,7 @@ interface ProgressBarProps {
   className?: string;
 }
 
+/** 학습 진행률 표시 바 컴포넌트 */
 export default function ProgressBar({ current, total, className = "" }: ProgressBarProps) {
   const pct = total > 0 ? Math.round((current / total) * 100) : 0;
 

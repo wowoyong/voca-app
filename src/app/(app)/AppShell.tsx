@@ -10,6 +10,7 @@ import AdInterstitial from "@/components/AdInterstitial";
 import InstallPrompt from "@/components/InstallPrompt";
 import PushNotification from "@/components/PushNotification";
 
+/** 앱 전체 레이아웃 셸 - 상단바, 광고, 하단 네비게이션 포함 */
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const langState = useLanguageState();
   const router = useRouter();
@@ -36,6 +37,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // 로그아웃 처리 후 로그인 페이지로 이동
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
     router.push("/login");

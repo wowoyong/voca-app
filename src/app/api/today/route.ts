@@ -4,13 +4,13 @@ import { prismaJapanese } from "@/lib/db-japanese";
 import { getAuthUser } from "@/lib/auth";
 import { getOrCreateLanguageUser } from "@/lib/user";
 
-// Seeded random number generator (consistent results for same seed)
+// 시드 기반 난수 생성 (같은 시드면 같은 결과)
 function seededRandom(seed: number) {
   let x = Math.sin(seed++) * 10000;
   return x - Math.floor(x);
 }
 
-// Shuffle function using seeded random
+// 시드 기반 배열 셔플 (하루 동안 동일한 순서 유지)
 function seededShuffle<T>(arr: T[], seed: number): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -20,7 +20,7 @@ function seededShuffle<T>(arr: T[], seed: number): T[] {
   return a;
 }
 
-// Get today's date as seed (changes at 00:00)
+// 오늘 날짜를 시드 숫자로 변환 (자정에 변경)
 function getTodaySeed(): number {
   const today = new Date();
   const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -35,6 +35,7 @@ function getTodaySeed(): number {
   return Math.abs(hash);
 }
 
+// 오늘의 신규 단어 15개 + 복습 단어 10개 조회
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getTodayData(prisma: any, userId: number) {
   const now = new Date();
@@ -98,6 +99,7 @@ async function getTodayData(prisma: any, userId: number) {
   };
 }
 
+/** GET: 오늘의 학습 데이터 조회 (신규 단어, 복습 단어, 표현, 문법) */
 export async function GET(req: NextRequest) {
   const lang = req.nextUrl.searchParams.get("lang") || "en";
 
@@ -119,6 +121,7 @@ export async function GET(req: NextRequest) {
 
     const data = await getTodayData(prisma, user.id);
 
+    // bigint 값을 문자열로 변환하여 직렬화
     const serialize = (obj: unknown): unknown => {
       return JSON.parse(
         JSON.stringify(obj, (_key, value) =>

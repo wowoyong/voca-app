@@ -45,6 +45,7 @@ const quickActions = [
   },
 ];
 
+/** 홈 페이지 컴포넌트 - 대시보드 및 빠른 시작 메뉴 */
 export default function HomePage() {
   const { language } = useLanguage();
   const [stats, setStats] = useState<HomeStats | null>(null);

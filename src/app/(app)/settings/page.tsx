@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+/** 설정 페이지 - 알림, 계정 관리, 약관 링크 */
 export default function SettingsPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -29,6 +30,7 @@ export default function SettingsPage() {
       .finally(() => setTimeLoading(false));
   }, []);
 
+  // 알림 시간 변경 및 서버에 저장
   const handleTimeChange = async (newTime: string) => {
     setNotificationTime(newTime);
     setTimeSaving(true);
@@ -53,6 +55,7 @@ export default function SettingsPage() {
     }
   };
 
+  // 알림 활성화/비활성화 토글
   const handleToggleNotification = async (enabled: boolean) => {
     setNotificationEnabled(enabled);
     setTimeSaving(true);
@@ -81,6 +84,7 @@ export default function SettingsPage() {
     }
   };
 
+  // 로그아웃 처리 후 로그인 페이지로 이동
   const handleLogout = async () => {
     setLoading(true);
 
@@ -102,6 +106,7 @@ export default function SettingsPage() {
     }
   };
 
+  // 회원 탈퇴 처리 및 데이터 삭제
   const handleDeleteAccount = async () => {
     setLoading(true);
 

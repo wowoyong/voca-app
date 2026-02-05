@@ -21,6 +21,7 @@ const PROTECTED_PATHS = [
   "/terms",
 ];
 
+/** 인증 미들웨어 - 보호된 경로 접근 시 JWT 토큰 검증 후 미인증 시 로그인 리다이렉트 */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 

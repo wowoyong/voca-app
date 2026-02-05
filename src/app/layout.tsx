@@ -29,6 +29,7 @@ export const viewport: Viewport = {
   themeColor: "#ffffff",
 };
 
+/** 루트 레이아웃 - HTML 구조 및 글로벌 스타일 적용 */
 export default function RootLayout({
   children,
 }: {

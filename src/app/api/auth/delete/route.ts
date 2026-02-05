@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prismaAuth } from "@/lib/db-auth";
 import { getAuthUser } from "@/lib/auth";
 
+/** DELETE: 회원 탈퇴 처리 (계정 및 쿠키 삭제) */
 export async function DELETE(req: NextRequest) {
   console.log("[Delete Account] Request received");
   

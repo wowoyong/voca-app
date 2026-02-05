@@ -26,6 +26,7 @@ interface SwipeableCardProps {
   showSwipeHints?: boolean;
 }
 
+/** 스와이프 가능한 플래시카드 컴포넌트 */
 export default function SwipeableCard({
   card,
   onSwipeLeft,

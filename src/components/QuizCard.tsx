@@ -17,6 +17,7 @@ interface QuizCardProps {
   onAnswer: (selectedId: number, correct: boolean) => void;
 }
 
+/** 4지선다 퀴즈 카드 컴포넌트 */
 export default function QuizCard({
   question,
   ttsText,
@@ -28,6 +29,7 @@ export default function QuizCard({
   const [selected, setSelected] = useState<number | null>(null);
   const [answered, setAnswered] = useState(false);
 
+  // 선택지 클릭 시 정답 여부 판별 후 콜백 호출
   const handleSelect = (optionId: number) => {
     if (answered) return;
     setSelected(optionId);

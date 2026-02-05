@@ -4,6 +4,7 @@ import { prismaJapanese } from "@/lib/db-japanese";
 import { getAuthUser } from "@/lib/auth";
 import { getOrCreateLanguageUser } from "@/lib/user";
 
+// 최근 3개월 학습 캘린더 및 퀴즈 정답률 조회
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function fetchStats(prisma: any, userId: number) {
   const threeMonthsAgo = new Date();
@@ -36,6 +37,7 @@ async function fetchStats(prisma: any, userId: number) {
   return { calendar, quizAccuracy, totalQuizzes };
 }
 
+/** GET: 학습 통계 조회 (캘린더, 퀴즈 정답률) */
 export async function GET(req: NextRequest) {
   const lang = req.nextUrl.searchParams.get("lang") || "en";
 

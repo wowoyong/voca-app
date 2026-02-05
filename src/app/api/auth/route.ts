@@ -3,6 +3,7 @@ import { createToken, COOKIE_NAME } from "@/lib/auth";
 import { prismaAuth } from "@/lib/db-auth";
 import bcrypt from "bcryptjs";
 
+// 응답에 인증 쿠키 설정
 function setCookie(res: NextResponse, token: string) {
   res.cookies.set(COOKIE_NAME, token, {
     httpOnly: true,
@@ -13,6 +14,7 @@ function setCookie(res: NextResponse, token: string) {
   });
 }
 
+/** POST: 회원가입 또는 로그인 처리 (action 값에 따라 분기) */
 export async function POST(req: NextRequest) {
   const { action, username, password } = await req.json();
 

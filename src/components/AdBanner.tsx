@@ -10,6 +10,7 @@ declare global {
   }
 }
 
+/** AdFit 배너 광고 컴포넌트 - 하단에 고정 표시 */
 export default function AdBanner() {
   const [loaded, setLoaded] = useState(false);
 

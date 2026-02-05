@@ -63,6 +63,7 @@ interface SavedState {
 
 const SESSION_KEY = "voca-flashcard-state";
 
+// 배열을 랜덤으로 섞어서 반환
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -72,6 +73,7 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+// 예문에서 정답 단어를 빈칸으로 치환
 function makeBlank(example: string, word: string): string {
   const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const regex = new RegExp(`\\b${escaped}\\b`, "gi");
@@ -85,12 +87,14 @@ function makeBlank(example: string, word: string): string {
   return example + " (_____)";
 }
 
+// 오답 보기를 풀에서 랜덤 선택
 function pickWrong(pool: string[], answer: string, count: number): string[] {
   return shuffle(
     pool.filter((t) => t.toLowerCase() !== answer.toLowerCase())
   ).slice(0, count);
 }
 
+// 단어, 표현, 문법 데이터를 빈칸 채우기 카드로 변환
 function buildCardsFromWords(words: WordData[], exprs: ExpressionData[], grammars: GrammarData[], language: "en" | "jp"): BlankCard[] {
   const wordPool = words.map((w) => language === "en" ? w.english! : w.japanese!);
   const exprPool = exprs.map((e) => e.expression);
@@ -161,6 +165,7 @@ function buildCardsFromWords(words: WordData[], exprs: ExpressionData[], grammar
   return shuffle(result);
 }
 
+/** 빈칸 채우기 페이지 - 4지선다 빈칸/뜻 맞추기 학습 */
 export default function FlashcardPage() {
   const { language } = useLanguage();
   const [cards, setCards] = useState<BlankCard[]>([]);
@@ -173,6 +178,7 @@ export default function FlashcardPage() {
   const [mode, setMode] = useState<"today" | "review">("today");
   const restoredRef = useRef(false);
 
+  // 현재 진행 상태를 세션 스토리지에 저장
   const saveState = useCallback((c: BlankCard[], idx: number, s: number, m: string) => {
     try {
       const state: SavedState = { cards: c, currentIdx: idx, score: s, lang: language, mode: m };
@@ -200,6 +206,7 @@ export default function FlashcardPage() {
     restoredRef.current = false;
   }, [language]);
 
+  // 서버에서 단어 데이터를 가져와 카드 생성
   const fetchWords = useCallback(async (fetchMode: "today" | "review") => {
     setLoading(true);
     try {
@@ -236,6 +243,7 @@ export default function FlashcardPage() {
     }
   }, [fetchWords]);
 
+  // 보기 선택 시 정답 확인 및 학습 기록 저장
   const handleSelect = async (option: string) => {
     if (answered) return;
     setSelected(option);
@@ -269,11 +277,13 @@ export default function FlashcardPage() {
     }, 1200);
   };
 
+  // 오늘의 단어로 다시 시작
   const handleRetryToday = () => {
     sessionStorage.removeItem(SESSION_KEY);
     fetchWords("today");
   };
 
+  // 이전 학습 단어들로 복습 시작
   const handleReviewPrevious = () => {
     sessionStorage.removeItem(SESSION_KEY);
     fetchWords("review");

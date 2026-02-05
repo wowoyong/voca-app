@@ -4,6 +4,7 @@ import { prismaJapanese } from "@/lib/db-japanese";
 import { getAuthUser } from "@/lib/auth";
 import { getOrCreateLanguageUser } from "@/lib/user";
 
+/** POST: 일일 세션 완료 상태 업데이트 (today/review/quiz) */
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();

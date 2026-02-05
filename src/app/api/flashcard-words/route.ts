@@ -4,7 +4,7 @@ import { prismaJapanese } from "@/lib/db-japanese";
 import { getAuthUser } from "@/lib/auth";
 import { getOrCreateLanguageUser } from "@/lib/user";
 
-// Regular shuffle for review mode
+// 배열 랜덤 셔플 (복습 모드용)
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -14,13 +14,13 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-// Seeded random number generator (consistent results for same seed)
+// 시드 기반 난수 생성 (같은 시드면 같은 결과)
 function seededRandom(seed: number) {
   let x = Math.sin(seed++) * 10000;
   return x - Math.floor(x);
 }
 
-// Shuffle function using seeded random
+// 시드 기반 배열 셔플 (하루 동안 동일한 순서 유지)
 function seededShuffle<T>(arr: T[], seed: number): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -30,7 +30,7 @@ function seededShuffle<T>(arr: T[], seed: number): T[] {
   return a;
 }
 
-// Get today's date as seed (changes at 00:00)
+// 오늘 날짜를 시드 숫자로 변환 (자정에 변경)
 function getTodaySeed(): number {
   const today = new Date();
   const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -45,6 +45,7 @@ function getTodaySeed(): number {
   return Math.abs(hash);
 }
 
+/** GET: 플래시카드용 단어 조회 (today/review/all 모드) */
 export async function GET(req: NextRequest) {
   const lang = req.nextUrl.searchParams.get("lang") || "en";
   const mode = req.nextUrl.searchParams.get("mode") || "today";

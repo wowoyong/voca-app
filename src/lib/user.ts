@@ -1,13 +1,4 @@
-/**
- * Get or create a language-specific user
- * 
- * @param prisma - EnglishPrismaClient | JapanesePrismaClient
- *   Note: Using any due to TypeScript limitations with Prisma union types.
- *   See TYPE_SAFETY_NOTES.md for details.
- * @param webUserId - Web user ID from auth system
- * @param username - Username
- * @returns User object with bigint telegramId
- */
+/** 언어별 DB에서 사용자 조회 또는 신규 생성 */
 export async function getOrCreateLanguageUser(
   prisma: any, // EnglishPrismaClient | JapanesePrismaClient
   webUserId: number,

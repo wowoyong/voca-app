@@ -30,6 +30,7 @@ interface ReviewExpression {
   exampleReading?: string;
 }
 
+/** 복습 페이지 - 스와이프 카드로 단어 복습 */
 export default function ReviewPage() {
   const { language } = useLanguage();
   const [cards, setCards] = useState<CardData[]>([]);
@@ -99,6 +100,7 @@ export default function ReviewPage() {
       .finally(() => setLoading(false));
   }, [language]);
 
+  // 스와이프 완료 후 학습 기록 저장
   const handleAnswer = async (quality: number) => {
     if (!cards[currentIdx]) return;
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+/** 이용약관 페이지 */
 export default function TermsPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 pt-6 pb-20">

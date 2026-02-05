@@ -10,6 +10,7 @@ declare global {
   }
 }
 
+/** AdFit 전면 광고 컴포넌트 - 세션당 1회 표시 */
 export default function AdInterstitial() {
   const [show, setShow] = useState(false);
   const [countdown, setCountdown] = useState(5);
@@ -75,6 +76,7 @@ export default function AdInterstitial() {
 
   if (!show) return null;
 
+  // 사용자가 광고 닫기 버튼 클릭 시 처리
   const handleClose = () => {
     if (canClose) {
       setShow(false);

@@ -24,6 +24,7 @@ interface SavedState {
 
 const SESSION_KEY = "voca-quiz-state";
 
+/** 퀴즈 페이지 - 4지선다 단어 실력 테스트 */
 export default function QuizPage() {
   const { language } = useLanguage();
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
@@ -34,6 +35,7 @@ export default function QuizPage() {
   const [mode, setMode] = useState<"today" | "review" | "all">("today");
   const restoredRef = useRef(false);
 
+  // 퀴즈 진행 상태를 세션 스토리지에 저장
   const saveState = useCallback((q: QuizQuestion[], idx: number, s: number, m: "today" | "review" | "all") => {
     try {
       const state: SavedState = { questions: q, currentIdx: idx, score: s, lang: language, mode: m };
@@ -61,6 +63,7 @@ export default function QuizPage() {
     restoredRef.current = false;
   }, [language]);
 
+  // 서버에서 퀴즈 문제를 가져오기
   const fetchQuiz = useCallback((quizMode: "today" | "review" | "all") => {
     setLoading(true);
     setError("");
@@ -112,6 +115,7 @@ export default function QuizPage() {
     }
   }, [completed, language]);
 
+  // 답변 선택 시 점수 반영 및 다음 문제로 이동
   const handleAnswer = (_selectedId: number, correct: boolean) => {
     const newScore = correct ? score + 1 : score;
     if (correct) setScore(newScore);
@@ -122,11 +126,13 @@ export default function QuizPage() {
     }, 200);
   };
 
+  // 오늘의 단어로 퀴즈 다시 시작
   const handleRetry = () => {
     sessionStorage.removeItem(SESSION_KEY);
     fetchQuiz("today");
   };
 
+  // 이전 단어들로 복습 퀴즈 시작
   const handleReview = () => {
     sessionStorage.removeItem(SESSION_KEY);
     fetchQuiz("review");

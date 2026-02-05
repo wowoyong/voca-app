@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+/** 푸시 알림 권한 요청 및 구독 관리 컴포넌트 */
 export default function PushNotification() {
   const [supported, setSupported] = useState(false);
   const [permission, setPermission] = useState<NotificationPermission>("default");
@@ -18,6 +19,7 @@ export default function PushNotification() {
     }
   }, []);
 
+  // 서비스 워커 등록
   const registerServiceWorker = async () => {
     try {
       const registration = await navigator.serviceWorker.register("/sw.js");
@@ -28,6 +30,7 @@ export default function PushNotification() {
     }
   };
 
+  // 알림 권한 요청 및 푸시 구독 처리
   const requestPermission = async () => {
     try {
       const permission = await Notification.requestPermission();
@@ -58,7 +61,7 @@ export default function PushNotification() {
     }
   };
 
-  // Convert VAPID key
+  // VAPID 키를 Uint8Array로 변환
   const urlBase64ToUint8Array = (base64String: string) => {
     const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
     const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");

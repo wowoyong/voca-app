@@ -4,6 +4,7 @@ import { prismaJapanese } from "@/lib/db-japanese";
 import { getAuthUser } from "@/lib/auth";
 import { getOrCreateLanguageUser } from "@/lib/user";
 
+/** GET: 알림 시간 설정 조회 */
 export async function GET(req: NextRequest) {
   try {
     const authUser = await getAuthUser();
@@ -25,6 +26,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
+/** POST: 알림 시간 및 활성 상태 저장 (영어/일본어 DB 동시 업데이트) */
 export async function POST(req: NextRequest) {
   try {
     const authUser = await getAuthUser();

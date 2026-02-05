@@ -43,6 +43,7 @@ const tabs = [
   },
 ];
 
+/** 하단 네비게이션 바 컴포넌트 - 4탭 (홈/학습/복습/통계) */
 export default function BottomNav() {
   const pathname = usePathname();
 
